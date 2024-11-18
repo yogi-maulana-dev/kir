@@ -1,76 +1,182 @@
-import React, {Component} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Text,
-  Button,
-  TextInput,
   View,
+  Text,
+  TextInput,
+  Alert,
+  StatusBar,
   StyleSheet,
-  Image,
+  Platform,
   TouchableOpacity,
+  PermissionsAndroid,
 } from 'react-native';
+import PushNotification from 'react-native-push-notification';
+// import axios from 'react-native-axios';
+import Firebase from '@react-native-firebase/app';
+import messaging from '@react-native-firebase/messaging';
+import axios from 'axios';
 
-function colek() {
-  alert('Meow...');
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCJ7rJ0tSYjtBZ9d7JK7byv9UgJHI2yy88",
+  authDomain: "tujuhtiga-c438f.firebaseapp.com",
+  projectId: "tujuhtiga-c438f",
+  storageBucket: "tujuhtiga-c438f.appspot.com",
+  messagingSenderId: "240101259326",
+  appId: "1:240101259326:web:14f82b6507720fd26a796f",
+};
+
+// Initialize Firebase
+if (!Firebase.apps.length) {
+  Firebase.initializeApp(firebaseConfig);
 }
 
-export class App extends Component {
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text style={{fontSize: 50, fontWeight: 'bold'}}>Selamat Datang</Text>
-
-        <Image source={require('./gambar/images.jpeg')} style={styles.image} />
-
-        {/* Uncomment this if you'd like to use an image from a URL instead */}
-        {/* 
-        <Image
-          source={{
-            uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrGLb1IXdjommJUROhJZl5nF0VWAohIPNFBrpQ8Iv-9BahNHqy30B9INrehNM7A-k68Es',
-          }}
-          style={styles.image}
-        /> 
-        */}
-
-        <TextInput placeholder="Enter text here" style={styles.input} />
-
-        <Button title="TULISAN" onPress={colek} />
-
-        <TouchableOpacity onPress={colek} style={styles.touchable}>
-          <Text style={styles.touchableText}>Colek Aku Jugah</Text>
-        </TouchableOpacity>
-      </View>
-    );
+const requestNotificationPermission = async () => {
+  try {
+    if (Platform.OS === 'android' && Platform.Version >= 33) {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        {
+          title: 'Izin Notifikasi',
+          message: 'Aplikasi ini memerlukan izin untuk mengirimkan notifikasi.',
+          buttonNeutral: 'Tanya Nanti',
+          buttonNegative: 'Batal',
+          buttonPositive: 'OK',
+        }
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    }
+    return true;
+  } catch (err) {
+    console.warn(err);
+    return false;
   }
-}
+};
+
+const App = () => {
+  const [namaInput, setNamaInput] = useState('');
+  const [idToken, setIdToken] = useState(null);
+  const [aksiKlik, setAksiKlik] = useState(false);
+  const [responseMessage, setResponseMessage] = useState('');
+
+  useEffect(() => {
+    PushNotification.configure({
+      onRegister: (token) => {
+        setIdToken(token.token);
+        console.log("TOKEN:", token.token);  // Debugging token
+      },
+      onNotification: (notification) => {
+        console.log("NOTIFICATION:", notification);
+        notification.finish(PushNotification.FetchResult.NoData);
+      },
+      requestPermissions: true,
+    });
+
+    const checkPermissionLoop = async () => {
+      while (!(await requestNotificationPermission())) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
+    };
+
+    checkPermissionLoop();
+  }, []);
+
+  const klikSimpan = async () => {
+    if (namaInput.trim() === '') {
+      alert('Nama tidak boleh kosong!');
+      return;
+    }
+    setAksiKlik(true);
+    setResponseMessage('Memproses...'); // Tampilkan status sementara
+
+    // Membuat objek data yang akan dikirim ke server
+    const data = { nama: namaInput, token: idToken, };
+
+    try {
+      // Mengirimkan data ke server menggunakan axios
+      const response = await axios.post('https://pangkalancaripelanggan.com/push/kirim.php', data, {
+        headers: {
+          'Content-Type': 'application/json', // Menggunakan JSON sebagai format request
+        },
+      });
+
+      // Tampilkan respons dari server untuk debugging
+      console.log("Response dari server:", response.data);
+
+      // Cek status dari response
+      if (response.data.status === 'success') {
+        setResponseMessage('Data berhasil disimpan!');
+      } else {
+        setResponseMessage(response.data.message || 'Terjadi kesalahan.');
+      }
+    } catch (error) {
+      // Tangani error jika ada masalah dengan permintaan
+      console.error('Terjadi kesalahan:', error);
+      setResponseMessage('Terjadi kesalahan, coba lagi.');
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      {aksiKlik ? (
+        <Text style={{ fontSize: 20 }}>Data berhasil dikirim! Nama Anda: {namaInput}</Text>
+      ) : (
+        <>
+          <Text style={styles.item}>Masukkan Nama Anda</Text>
+          <TextInput
+            onChangeText={setNamaInput}
+            placeholder="Masukkan Nama Anda..."
+            style={styles.input}
+          />
+          <TouchableOpacity onPress={klikSimpan} style={styles.button}>
+            <Text style={styles.buttonText}>Kirim Data</Text>
+          </TouchableOpacity>
+        </>
+      )}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: StatusBar.currentHeight,
+    backgroundColor: '#ecf0f1',
+    padding: 8,
   },
-  image: {
-    width: 300,
-    height: 300,
-    marginVertical: 20, // Add vertical margin to create space above and below the image
+  item: {
+    margin: 24,
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   input: {
-    height: 40,
-    borderColor: 'gray',
+    borderColor: '#CCCCCC',
     borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 8,
-    width: '80%',
-  },
-  touchable: {
-    backgroundColor: 'red',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    width: 300,
+    fontSize: 20,
+    padding: 10,
+    borderRadius: 10,
     marginTop: 10,
+    marginBottom: 10,
   },
-  touchableText: {
-    color: 'white',
+  button: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  buttonText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },

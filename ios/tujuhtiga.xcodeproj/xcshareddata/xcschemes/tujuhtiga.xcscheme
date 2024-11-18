@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "kir.app"
-               BlueprintName = "kir"
-               ReferencedContainer = "container:kir.xcodeproj">
+               BuildableName = "tujuhtiga.app"
+               BlueprintName = "tujuhtiga"
+               ReferencedContainer = "container:tujuhtiga.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "kirTests.xctest"
-               BlueprintName = "kirTests"
-               ReferencedContainer = "container:kir.xcodeproj">
+               BuildableName = "tujuhtigaTests.xctest"
+               BlueprintName = "tujuhtigaTests"
+               ReferencedContainer = "container:tujuhtiga.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "kir.app"
-            BlueprintName = "kir"
-            ReferencedContainer = "container:kir.xcodeproj">
+            BuildableName = "tujuhtiga.app"
+            BlueprintName = "tujuhtiga"
+            ReferencedContainer = "container:tujuhtiga.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "kir.app"
-            BlueprintName = "kir"
-            ReferencedContainer = "container:kir.xcodeproj">
+            BuildableName = "tujuhtiga.app"
+            BlueprintName = "tujuhtiga"
+            ReferencedContainer = "container:tujuhtiga.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

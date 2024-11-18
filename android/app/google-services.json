@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "240101259326",
+    "project_id": "tujuhtiga-c438f",
+    "storage_bucket": "tujuhtiga-c438f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:240101259326:android:7a09946a10caeed16a796f",
+        "android_client_info": {
+          "package_name": "com.tujuhtiga"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5GVZVA9_RjhLPaL5lymGdst0SF3TBetY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

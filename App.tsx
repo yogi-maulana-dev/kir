@@ -11,7 +11,6 @@ import {
   PermissionsAndroid,
 } from 'react-native';
 import PushNotification from 'react-native-push-notification';
-// import axios from 'react-native-axios';
 import Firebase from '@react-native-firebase/app';
 import messaging from '@react-native-firebase/messaging';
 import axios from 'axios';
@@ -31,6 +30,7 @@ if (!Firebase.apps.length) {
   Firebase.initializeApp(firebaseConfig);
 }
 
+// Request notification permission for Android
 const requestNotificationPermission = async () => {
   try {
     if (Platform.OS === 'android' && Platform.Version >= 33) {
@@ -46,7 +46,7 @@ const requestNotificationPermission = async () => {
       );
       return granted === PermissionsAndroid.RESULTS.GRANTED;
     }
-    return true;
+    return true; // Mengizinkan otomatis untuk Android versi di bawah 33
   } catch (err) {
     console.warn(err);
     return false;
@@ -60,18 +60,39 @@ const App = () => {
   const [responseMessage, setResponseMessage] = useState('');
 
   useEffect(() => {
+    // Create notification channel
+    PushNotification.createChannel(
+      {
+        channelId: "default-channel-id", // ID unik untuk channel
+        channelName: "Default Channel", // Nama channel
+        channelDescription: "Channel notifikasi default", // Deskripsi
+        importance: 4, // Penting untuk ditampilkan
+        vibrate: true,
+      },
+      (created) => console.log(`Channel created: ${created}`)
+    );
+
+    // Configure push notifications
     PushNotification.configure({
       onRegister: (token) => {
         setIdToken(token.token);
-        console.log("TOKEN:", token.token);  // Debugging token
+        console.log("TOKEN:", token.token); // Debugging token
       },
       onNotification: (notification) => {
         console.log("NOTIFICATION:", notification);
-        notification.finish(PushNotification.FetchResult.NoData);
+        PushNotification.localNotification({
+          channelId: "default-channel-id", // Gunakan channelId
+          title: notification.title || "Default Title",
+          message: notification.message || "Default Message",
+        });
+        if (notification.finish) {
+          notification.finish(); // Hapus penggunaan FetchResult
+        }
       },
       requestPermissions: true,
     });
 
+    // Loop untuk memeriksa izin notifikasi
     const checkPermissionLoop = async () => {
       while (!(await requestNotificationPermission())) {
         await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -90,7 +111,10 @@ const App = () => {
     setResponseMessage('Memproses...'); // Tampilkan status sementara
 
     // Membuat objek data yang akan dikirim ke server
-    const data = { nama: namaInput, token: idToken, };
+    const data = {
+      nama: namaInput,
+      token: idToken,
+    };
 
     try {
       // Mengirimkan data ke server menggunakan axios

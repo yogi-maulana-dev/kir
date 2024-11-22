@@ -19,12 +19,15 @@ export default function App() {
 
 function MainNavigator() {
   const { userInfo, isLoading } = useContext(AuthContext);
+  console.log('UserInfo:', userInfo);
 
-  // Render layar berdasarkan status login
+
   function renderScreens() {
     if (userInfo?.token) {
-      return <Stack.Screen name="Home" component={HomeScreen} />;
+      console.log('Menampilkan HomeScreen karena token ada.');
+      return <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />;
     }
+    console.log('Menampilkan Login/Register karena token tidak ada.');
     return (
       <>
         <Stack.Screen name="Login" component={Login} />
@@ -33,6 +36,7 @@ function MainNavigator() {
     );
   }
 
+  // Jika sedang loading (misalnya, memeriksa token di AsyncStorage), tampilkan loading screen
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

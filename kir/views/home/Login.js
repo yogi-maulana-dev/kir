@@ -18,16 +18,7 @@ import {AuthContext} from '../context/AuthContext';
 export default function Login({navigation}) {
   const [email, setEmail] = useState(null);
   const [password, setPassword] = useState(null);
-  // const {isLoading, login} = useContext(AuthContext);
 
-  // const handleLogin = () => {
-  //   // Ensure that all fields are filled
-  //   if (email && password) {
-  //     login(email, password);
-  //   } else {
-  //     alert('Please fill in all fields');
-  //   }
-  // };
   const [error, setError] = useState(''); // State untuk pesan error
   const {login} = useContext(AuthContext);
 

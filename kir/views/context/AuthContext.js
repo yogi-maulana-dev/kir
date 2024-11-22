@@ -14,11 +14,23 @@ export const AuthProvider = ({children}) => {
       setIsLoading(true);
       try {
         const storedUserInfo = await AsyncStorage.getItem('userInfo');
+        console.log(
+          'Data userInfo dari AsyncStorage saat startup:',
+          storedUserInfo,
+        );
+
         if (storedUserInfo) {
-          setUserInfo(JSON.parse(storedUserInfo));
+          const parsedUserInfo = JSON.parse(storedUserInfo);
+          setUserInfo(parsedUserInfo);
+          // Ensure token is stored separately
+          if (parsedUserInfo.token) {
+            await AsyncStorage.setItem('accessToken', parsedUserInfo.token);
+          }
+        } else {
+          setUserInfo(null);
         }
       } catch (error) {
-        console.error('Error loading user info:', error.message);
+        console.error('Error memuat userInfo:', error.message);
       } finally {
         setIsLoading(false);
       }
@@ -40,7 +52,10 @@ export const AuthProvider = ({children}) => {
       if (userInfo) {
         setUserInfo(userInfo);
         await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo));
-        console.log('Registration successful:', userInfo);
+        // Store token separately
+        if (userInfo.token) {
+          await AsyncStorage.setItem('accessToken', userInfo.token);
+        }
       }
     } catch (error) {
       console.error(
@@ -65,14 +80,17 @@ export const AuthProvider = ({children}) => {
       if (userInfo) {
         setUserInfo(userInfo);
         await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo));
+        // Store token separately
+        if (userInfo.token) {
+          await AsyncStorage.setItem('accessToken', userInfo.token);
+        }
         console.log('Login successful:', userInfo);
       }
     } catch (error) {
-      // Tangkap pesan error dari backend
       const errorMessage =
         error.response?.data?.message || 'Terjadi kesalahan, coba lagi.';
-      console.log('Login error:', error.response?.data || error.message); // Debugging
-      throw new Error(errorMessage); // Lempar pesan error
+      console.log('Login error:', error.response?.data || error.message);
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -80,10 +98,47 @@ export const AuthProvider = ({children}) => {
 
   const logout = async () => {
     setIsLoading(true);
+
     try {
-      await AsyncStorage.removeItem('userInfo');
+      const token = await AsyncStorage.getItem('accessToken');
+      console.log('Token sebelum logout:', token);
+
+      if (token) {
+        const response = await fetch(`${BASE_URL}logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const contentType = response.headers.get('content-type');
+
+        if (
+          response.ok &&
+          contentType &&
+          contentType.includes('application/json')
+        ) {
+          const data = await response.json();
+          console.log('Logout berhasil:', data);
+        } else {
+          const errorText = await response.text();
+          console.error('Logout gagal:', response.status, errorText);
+        }
+      } else {
+        console.warn(
+          'Token tidak ditemukan. Proses logout hanya menghapus state lokal.',
+        );
+      }
+
+      await AsyncStorage.multiRemove(['accessToken', 'userInfo']);
+      console.log(
+        'AsyncStorage setelah logout:',
+        await AsyncStorage.getAllKeys(),
+      );
+
       setUserInfo(null);
-      console.log('Logout successful');
+      console.log('Logout selesai, state userInfo disetel ke null.');
     } catch (error) {
       console.error('Logout error:', error.message);
     } finally {
@@ -104,3 +159,5 @@ export const AuthProvider = ({children}) => {
     </AuthContext.Provider>
   );
 };
+
+export default AuthProvider;
